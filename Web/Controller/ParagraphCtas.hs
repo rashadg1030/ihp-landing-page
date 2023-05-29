@@ -5,6 +5,8 @@ import Web.View.ParagraphCtas.Index
 import Web.View.ParagraphCtas.New
 import Web.View.ParagraphCtas.Edit
 import Web.View.ParagraphCtas.Show
+import Web.View.Prelude hiding (fetch, query)
+import Text.HTML.SanitizeXSS (sanitizeBalance)
 
 instance Controller ParagraphCtasController where
     action ParagraphCtaAction = do
@@ -44,9 +46,9 @@ instance Controller ParagraphCtasController where
                     landingPages <- query @LandingPage |> fetch
                     render EditView { .. }
                 Right paragraphCta -> do
-                    paragraphCta <- paragraphCta |> updateRecord
+                    paragraphCta' <- paragraphCta |> sanitizeParagraphCTA |> updateRecord
                     setSuccessMessage "ParagraphCta updated"
-                    redirectTo EditLandingPageAction { landingPageId = paragraphCta.landingPageId }
+                    redirectTo EditLandingPageAction { landingPageId = paragraphCta'.landingPageId }
 
     action CreateParagraphCtaAction = do
         let paragraphCta = newRecord @ParagraphCta
@@ -57,9 +59,9 @@ instance Controller ParagraphCtasController where
                     landingPages <- query @LandingPage |> fetch
                     render NewView { .. }
                 Right paragraphCta -> do
-                    paragraphCta <- paragraphCta |> createRecord
+                    paragraphCta' <- paragraphCta |> sanitizeParagraphCTA |> createRecord
                     setSuccessMessage "ParagraphCta created"
-                    redirectTo EditLandingPageAction { landingPageId = paragraphCta.landingPageId }
+                    redirectTo EditLandingPageAction { landingPageId = paragraphCta'.landingPageId }
 
     action DeleteParagraphCtaAction { paragraphCtaId } = do
         paragraphCta <- fetch paragraphCtaId
@@ -72,3 +74,9 @@ buildParagraphCta paragraphCta = paragraphCta
     |> validateField #title nonEmpty
     |> validateField #body nonEmpty
     |> validateField #refLandingPageId nonEmpty
+
+sanitizeHtml :: Text -> Text
+sanitizeHtml = sanitizeBalance
+
+sanitizeParagraphCTA :: ParagraphCta -> ParagraphCta
+sanitizeParagraphCTA paragraphCTA = set #body (sanitizeHtml paragraphCTA.body) paragraphCTA
