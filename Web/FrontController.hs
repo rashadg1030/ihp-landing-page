@@ -8,6 +8,7 @@ import Web.View.Layout (defaultLayout)
 import Web.Controller.LandingPages
 import Web.Controller.ParagraphCtas
 import Web.Controller.ParagraphQuotes
+import Web.Controller.StyleGuide
 
 instance FrontController WebApplication where
     controllers =
@@ -16,6 +17,7 @@ instance FrontController WebApplication where
         , parseRoute @LandingPagesController
         , parseRoute @ParagraphCtasController
         , parseRoute @ParagraphQuotesController
+        , parseRoute @StyleGuideController
         ]
 
 instance InitControllerContext WebApplication where
